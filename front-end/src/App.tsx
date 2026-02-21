@@ -274,7 +274,7 @@ function App() {
             )}
 
             <a
-                href="https://github.com/kel89/storypoint-app"
+                href="https://github.com/kel89/storypoint-app-cloudflare"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="fixed bottom-4 right-4"
