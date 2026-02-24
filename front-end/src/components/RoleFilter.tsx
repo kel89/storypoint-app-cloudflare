@@ -51,8 +51,8 @@ export default function RoleFilter({
                             role
                         )} ${
                             roleFilter.includes(role)
-                                ? "bg-gray-300"
-                                : "bg-gray-100"
+                                ? "bg-gray-300 dark:bg-gray-600"
+                                : "bg-gray-100 dark:bg-gray-800"
                         }`}
                     >
                         {role

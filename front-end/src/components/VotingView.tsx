@@ -75,7 +75,7 @@ export default function VotingView({
                         </button>
                     </div>
                     <button
-                        className="text-blue-500 hover:bg-blue-100 px-4 py-2 rounded transition-colors duration-200 border border-blue-200"
+                        className="text-blue-500 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 px-4 py-2 rounded transition-colors duration-200 border border-blue-200 dark:border-blue-700"
                         onClick={() => setPresentationMode(!presentationMode)}
                     >
                         {presentationMode

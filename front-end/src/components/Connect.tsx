@@ -1,6 +1,7 @@
 import { FormEvent } from "react";
 import { Role } from "../types/Role";
 import { toast } from "react-toastify";
+import DarkModeToggle from "./DarkModeToggle";
 
 type ConnectProps = {
     username: string;
@@ -33,12 +34,13 @@ export default function Connect({
 
     return (
         <>
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-                <h1 className="text-4xl font-bold mb-2">
+            <DarkModeToggle />
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
+                <h1 className="text-4xl font-bold mb-2 dark:text-white">
                     Connect to Storypointer
                 </h1>
-                <p className="text-sm text-gray-400 mb-4">Room: {roomId}</p>
-                <h2 className="text-2xl mb-4">Enter your username</h2>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">Room: {roomId}</p>
+                <h2 className="text-2xl mb-4 dark:text-gray-200">Enter your username</h2>
                 <div>
                     <form
                         className="flex flex-col items-center"
@@ -48,9 +50,9 @@ export default function Connect({
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="px-4 py-2 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 mb-4 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-white"
                         />
-                        <h2 className="text-2xl">Select your Role</h2>
+                        <h2 className="text-2xl dark:text-gray-200">Select your Role</h2>
                         <div className="flex flex-col items-start mb-4">
                             {Object.values(Role).map((roleValue) => (
                                 <label
@@ -63,7 +65,7 @@ export default function Connect({
                                         checked={role === roleValue}
                                         onChange={() => setRole(roleValue)}
                                     />
-                                    <span className="ml-2 text-gray-700">
+                                    <span className="ml-2 text-gray-700 dark:text-gray-300">
                                         {roleValue
                                             .split("_")
                                             .map(

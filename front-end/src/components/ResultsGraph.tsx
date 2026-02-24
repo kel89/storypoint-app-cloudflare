@@ -17,6 +17,9 @@ export default function ResultsGraph({ users }: ResultsGraphProps) {
         21: "#667EEA", // Indigo
     };
 
+    const isDark = document.documentElement.classList.contains("dark");
+    const labelColor = isDark ? "#e5e7eb" : "#374151";
+
     const pointsCount = users.reduce((acc, user) => {
         if (user.points === 0) return acc;
         acc[user.points] = (acc[user.points] || 0) + 1;
@@ -39,6 +42,7 @@ export default function ResultsGraph({ users }: ResultsGraphProps) {
                     label={({ name, percent }) =>
                         `${name}: ${(percent * 100).toFixed(0)}%`
                     }
+                    style={{ fill: labelColor }}
                 >
                     {data.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />

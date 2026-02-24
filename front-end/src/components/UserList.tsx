@@ -87,19 +87,19 @@ export default function UserList({
         });
 
     return (
-        <div className="p-4 bg-white rounded-lg border shadow-md">
-            <h1 className="text-2xl font-bold mb-4">Seals</h1>
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md">
+            <h1 className="text-2xl font-bold mb-4 dark:text-white">Seals</h1>
             {filteredUsers.map((user, index) => {
                 const isNewlyVoted = newlyVotedRef.current.has(user.sid);
 
                 return (
                     <div
                         key={user.sid}
-                        className="flex justify-between items-center border-b border-gray-200 py-2"
+                        className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 py-2"
                     >
                         <span
-                            className={`text-lg ${
-                                isWaitingForUser(user) ? "text-red-500" : ""
+                            className={`text-lg dark:text-gray-200 ${
+                                isWaitingForUser(user) ? "text-red-500 dark:text-red-400" : ""
                             }`}
                         >
                             <span
@@ -112,7 +112,7 @@ export default function UserList({
                             {getRoleText(user.role)}
                         </span>
 
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                             {showPoints ? (
                                 <span
                                     className="inline-block animate-number-reveal"

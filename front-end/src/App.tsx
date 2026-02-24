@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.min.css";
 import Connect from "./components/Connect";
 import VotingView from "./components/VotingView";
 import ResultsView from "./components/ResultsView";
+import DarkModeToggle from "./components/DarkModeToggle";
 import { User } from "./types/User";
 import githubLogo from "./assets/github-mark.svg";
 import { rainDollarEmojis } from "./helpers/rainDollars";
@@ -75,7 +76,7 @@ function App() {
                 closeOnClick: true,
                 pauseOnHover: false,
                 draggable: false,
-                theme: "light",
+                theme: "colored",
                 transition: Bounce,
             });
         }, 800);
@@ -139,7 +140,7 @@ function App() {
                         pauseOnHover: false,
                         draggable: false,
                         progress: undefined,
-                        theme: "light",
+                        theme: "colored",
                         transition: Bounce,
                     });
                 }
@@ -156,7 +157,7 @@ function App() {
                         pauseOnHover: true,
                         draggable: true,
                         progress: undefined,
-                        theme: "light",
+                        theme: "colored",
                         transition: Bounce,
                     });
                 }
@@ -184,7 +185,7 @@ function App() {
                     pauseOnHover: true,
                     draggable: true,
                     progress: undefined,
-                    theme: "light",
+                    theme: "colored",
                     transition: Bounce,
                 });
             });
@@ -243,33 +244,38 @@ function App() {
                     onConnect={handleConnect}
                     roomId={roomId || ""}
                 />
-            ) : displayShowPoints ? (
-                <div className={transitionClass}>
-                    <UserContext.Provider value={username}>
-                        <ResultsView
-                            users={users}
-                            onClearPoints={onClearPoints}
-                            onHidePoints={onHidePoints}
-                            onReaction={onReaction}
-                            roomId={roomId || ""}
-                        />
-                    </UserContext.Provider>
-                </div>
             ) : (
-                <div className={transitionClass}>
-                    <UserContext.Provider value={username}>
-                        <VotingView
-                            users={users}
-                            presentationMode={presentationMode}
-                            setPresentationMode={setPresentationMode}
-                            onShowResults={onShowResults}
-                            onClearPoints={onClearPoints}
-                            onVote={onVote}
-                            onReaction={onReaction}
-                            onCallout={onCallout}
-                            roomId={roomId || ""}
-                        />
-                    </UserContext.Provider>
+                <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
+                    <DarkModeToggle />
+                    {displayShowPoints ? (
+                        <div className={transitionClass}>
+                            <UserContext.Provider value={username}>
+                                <ResultsView
+                                    users={users}
+                                    onClearPoints={onClearPoints}
+                                    onHidePoints={onHidePoints}
+                                    onReaction={onReaction}
+                                    roomId={roomId || ""}
+                                />
+                            </UserContext.Provider>
+                        </div>
+                    ) : (
+                        <div className={transitionClass}>
+                            <UserContext.Provider value={username}>
+                                <VotingView
+                                    users={users}
+                                    presentationMode={presentationMode}
+                                    setPresentationMode={setPresentationMode}
+                                    onShowResults={onShowResults}
+                                    onClearPoints={onClearPoints}
+                                    onVote={onVote}
+                                    onReaction={onReaction}
+                                    onCallout={onCallout}
+                                    roomId={roomId || ""}
+                                />
+                            </UserContext.Provider>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -282,7 +288,7 @@ function App() {
                 <img
                     src={githubLogo}
                     alt="GitHub logo"
-                    className="w-10 h-10"
+                    className="w-10 h-10 dark:invert dark:brightness-200"
                 />
             </a>
             <ToastContainer />
