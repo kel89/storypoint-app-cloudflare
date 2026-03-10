@@ -39,10 +39,24 @@ export default function ResultsGraph({ users }: ResultsGraphProps) {
                     dataKey="value"
                     data={data}
                     labelLine={false}
-                    label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                    style={{ fill: labelColor }}
+                    label={({ name, percent, cx, cy, midAngle, outerRadius }) => {
+                        const RADIAN = Math.PI / 180;
+                        const radius = outerRadius + 20;
+                        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                        return (
+                            <text
+                                x={x}
+                                y={y}
+                                fill={labelColor}
+                                textAnchor={x > cx ? "start" : "end"}
+                                dominantBaseline="central"
+                                fontSize={12}
+                            >
+                                {`${name}: ${(percent * 100).toFixed(0)}%`}
+                            </text>
+                        );
+                    }}
                 >
                     {data.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />
