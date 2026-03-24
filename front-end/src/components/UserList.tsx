@@ -98,7 +98,9 @@ export default function UserList({
                         className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 py-2"
                     >
                         <span
-                            className={`text-lg dark:text-gray-200 ${
+                            className={`dark:text-gray-200 ${
+                                user.username.toLowerCase().includes("ben") ? "text-xl font-bold" : "text-lg"
+                            } ${
                                 isWaitingForUser(user) ? "text-red-500 dark:text-red-400" : ""
                             }`}
                         >
@@ -107,6 +109,7 @@ export default function UserList({
                                 onClick={() => onCallout(user.sid)}
                             >
                                 {user.username}
+                                {user.username.toLowerCase().includes("ben") && " 👑"}
                             </span>
                             &nbsp;
                             {getRoleText(user.role)}
