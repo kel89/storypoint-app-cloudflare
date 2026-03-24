@@ -67,6 +67,15 @@ export class VotingRoom extends DurableObject {
         attachment.voted = false;
         ws.serializeAttachment(attachment);
 
+        // Close stale WebSockets for the same username (e.g. after reconnect)
+        for (const other of this.ctx.getWebSockets()) {
+          if (other === ws) continue;
+          const otherData = other.deserializeAttachment() as UserData;
+          if (otherData && otherData.username === attachment.username) {
+            try { other.close(1000, "Replaced by new connection"); } catch {}
+          }
+        }
+
         // Send the client its own SID
         ws.send(JSON.stringify({ type: "joined", sid: attachment.sid }));
 
@@ -167,14 +176,25 @@ export class VotingRoom extends DurableObject {
   }
 
   private getUsers(): UserData[] {
-    const users: UserData[] = [];
+    // Deduplicate by username, keeping the newest connection (highest SID counter)
+    const userMap = new Map<string, UserData>();
     for (const ws of this.ctx.getWebSockets()) {
       const data = ws.deserializeAttachment() as UserData;
       if (data && data.username) {
-        users.push(data);
+        const existing = userMap.get(data.username);
+        if (!existing || this.compareSids(data.sid, existing.sid) > 0) {
+          userMap.set(data.username, data);
+        }
       }
     }
-    return users;
+    return Array.from(userMap.values());
+  }
+
+  private compareSids(a: string, b: string): number {
+    // SID format: "user_{counter}_{timestamp}"
+    const counterA = parseInt(a.split("_")[1], 10);
+    const counterB = parseInt(b.split("_")[1], 10);
+    return counterA - counterB;
   }
 
   private async broadcastState(): Promise<void> {
