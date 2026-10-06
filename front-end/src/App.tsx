@@ -8,6 +8,7 @@ import Connect from "./components/Connect";
 import VotingView from "./components/VotingView";
 import ResultsView from "./components/ResultsView";
 import DarkModeToggle from "./components/DarkModeToggle";
+import ProfileButton from "./components/ProfileButton";
 import { User } from "./types/User";
 import githubLogo from "./assets/github-mark.svg";
 import { rainDollarEmojis } from "./helpers/rainDollars";
@@ -18,12 +19,17 @@ import { fireConsensusConfetti } from "./helpers/confetti";
 import { UserContext } from "./context/UserContex";
 import { RoomSocket } from "./websocket";
 import { Role } from "./types/Role";
+import { loadProfile, saveProfile } from "./helpers/profileStorage";
 
 function App() {
     const { roomId } = useParams<{ roomId: string }>();
     const [isConnected, setIsConnected] = useState(false);
-    const [username, setUsername] = useState("");
-    const [role, setRole] = useState<Role | undefined>();
+    const [username, setUsername] = useState(
+        () => loadProfile()?.username ?? ""
+    );
+    const [role, setRole] = useState<Role | undefined>(
+        () => loadProfile()?.role
+    );
     const [sid, setSid] = useState<string>();
     const [users, setUsers] = useState<User[]>([]);
     const [showPoints, setShowPoints] = useState(false);
@@ -164,8 +170,6 @@ function App() {
             });
 
             rs.on("clear", () => {
-                setUsername("");
-                setRole(undefined);
                 setSid(undefined);
                 setUsers([]);
                 setShowPoints(false);
@@ -190,12 +194,37 @@ function App() {
                 });
             });
 
+            saveProfile({
+                username: connectUsername,
+                role: connectRole as Role,
+            });
             rs.connect(connectUsername, connectRole);
             socketRef.current = rs;
             setIsConnected(true);
         },
         [roomId]
     );
+
+    // Auto-join with the saved profile when opening a room link
+    useEffect(() => {
+        const profile = loadProfile();
+        if (profile) {
+            handleConnect(profile.username, profile.role);
+        }
+    }, [handleConnect]);
+
+    // Leave the room and return to the connect form to change name/role
+    const onEditProfile = useCallback(() => {
+        socketRef.current?.disconnect();
+        socketRef.current = null;
+        setSid(undefined);
+        setUsers([]);
+        setShowPoints(false);
+        setDisplayShowPoints(false);
+        setIsRevealing(false);
+        prevShowPointsRef.current = false;
+        setIsConnected(false);
+    }, []);
 
     // Callback props for child components
     const onVote = useCallback((points: number) => {
@@ -247,6 +276,11 @@ function App() {
             ) : (
                 <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
                     <DarkModeToggle />
+                    <ProfileButton
+                        username={username}
+                        role={role}
+                        onEdit={onEditProfile}
+                    />
                     {displayShowPoints ? (
                         <div className={transitionClass}>
                             <UserContext.Provider value={username}>
