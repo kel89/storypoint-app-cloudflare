@@ -194,6 +194,30 @@ function App() {
                 });
             });
 
+            rs.on("replaced", () => {
+                setSid(undefined);
+                setUsers([]);
+                setShowPoints(false);
+                setDisplayShowPoints(false);
+                setIsRevealing(false);
+                prevShowPointsRef.current = false;
+                setIsConnected(false);
+                socketRef.current?.disconnect();
+                socketRef.current = null;
+
+                toast("You joined this room in another tab. Connect again to use this one.", {
+                    position: "top-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "colored",
+                    transition: Bounce,
+                });
+            });
+
             saveProfile({
                 username: connectUsername,
                 role: connectRole as Role,

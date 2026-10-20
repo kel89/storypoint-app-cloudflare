@@ -72,7 +72,11 @@ export class VotingRoom extends DurableObject {
           if (other === ws) continue;
           const otherData = other.deserializeAttachment() as UserData;
           if (otherData && otherData.username === attachment.username) {
-            try { other.close(1000, "Replaced by new connection"); } catch {}
+            // Drop it from the user list right away; a half-open socket can linger in
+            // getWebSockets() long after close() and would shadow this connection's votes
+            otherData.username = "";
+            other.serializeAttachment(otherData);
+            try { other.close(4000, "Replaced by new connection"); } catch {}
           }
         }
 
@@ -191,10 +195,11 @@ export class VotingRoom extends DurableObject {
   }
 
   private compareSids(a: string, b: string): number {
-    // SID format: "user_{counter}_{timestamp}"
-    const counterA = parseInt(a.split("_")[1], 10);
-    const counterB = parseInt(b.split("_")[1], 10);
-    return counterA - counterB;
+    // SID format: "user_{counter}_{timestamp}". sidCounter resets when the object
+    // hibernates, so order by timestamp first and only use the counter as a tiebreak.
+    const [, counterA, timeA] = a.split("_").map(Number);
+    const [, counterB, timeB] = b.split("_").map(Number);
+    return timeA - timeB || counterA - counterB;
   }
 
   private async broadcastState(): Promise<void> {
