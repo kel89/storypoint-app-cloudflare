@@ -14,7 +14,7 @@ export type ClientMessage =
 
 // Messages the server sends to clients
 export type ServerMessage =
-  | { type: "state"; users: User[]; showResults: boolean }
+  | { type: "state"; users: User[]; showResults: boolean; streak: number }
   | { type: "joined"; sid: string }
   | { type: "reaction"; reaction: string; sender: string }
   | { type: "callout"; sid: string }

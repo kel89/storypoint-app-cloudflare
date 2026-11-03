@@ -98,6 +98,13 @@ export class VotingRoom extends DurableObject {
       }
 
       case "showResults": {
+        const alreadyShowing = (await this.ctx.storage.get<boolean>("showResults")) ?? false;
+        if (!alreadyShowing) {
+          // Score this round against the streak it started with, so hiding and
+          // re-revealing the same round re-scores it instead of counting twice
+          const base = (await this.ctx.storage.get<number>("streakBase")) ?? 0;
+          await this.ctx.storage.put("streak", this.hasConsensus() ? base + 1 : 0);
+        }
         await this.ctx.storage.put("showResults", true);
         await this.broadcastState();
         break;
@@ -114,6 +121,8 @@ export class VotingRoom extends DurableObject {
           }
         }
         await this.ctx.storage.put("showResults", false);
+        // The next round builds on whatever streak this round ended with
+        await this.ctx.storage.put("streakBase", (await this.ctx.storage.get<number>("streak")) ?? 0);
         await this.broadcastState();
         break;
       }
@@ -168,6 +177,7 @@ export class VotingRoom extends DurableObject {
 
   private async clearRoom(): Promise<void> {
     await this.ctx.storage.put("showResults", false);
+    await this.ctx.storage.delete(["streak", "streakBase"]);
     for (const ws of this.ctx.getWebSockets()) {
       const data = ws.deserializeAttachment() as UserData;
       data.username = "";
@@ -194,6 +204,12 @@ export class VotingRoom extends DurableObject {
     return Array.from(userMap.values());
   }
 
+  // Consensus = at least two people voted and every vote is the same
+  private hasConsensus(): boolean {
+    const voters = this.getUsers().filter((u) => u.points > 0);
+    return voters.length >= 2 && voters.every((u) => u.points === voters[0].points);
+  }
+
   private compareSids(a: string, b: string): number {
     // SID format: "user_{counter}_{timestamp}". sidCounter resets when the object
     // hibernates, so order by timestamp first and only use the counter as a tiebreak.
@@ -205,7 +221,8 @@ export class VotingRoom extends DurableObject {
   private async broadcastState(): Promise<void> {
     const users = this.getUsers();
     const showResults = (await this.ctx.storage.get<boolean>("showResults")) ?? false;
-    const msg = JSON.stringify({ type: "state", users, showResults });
+    const streak = (await this.ctx.storage.get<number>("streak")) ?? 0;
+    const msg = JSON.stringify({ type: "state", users, showResults, streak });
     for (const ws of this.ctx.getWebSockets()) {
       try {
         ws.send(msg);

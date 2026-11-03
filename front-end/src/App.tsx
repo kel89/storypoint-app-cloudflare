@@ -15,7 +15,8 @@ import { rainDollarEmojis } from "./helpers/rainDollars";
 import { playHurryUp } from "./helpers/playHurryUp";
 import { createFloatingEmojis } from "./helpers/emojiAnimation";
 import { expandCenterEmoji } from "./helpers/expandCenterEmoji";
-import { fireConsensusConfetti } from "./helpers/confetti";
+import { celebrateStreak } from "./helpers/streakCelebration";
+import StreakBadge from "./components/StreakBadge";
 import { UserContext } from "./context/UserContex";
 import { RoomSocket } from "./websocket";
 import { Role } from "./types/Role";
@@ -33,6 +34,7 @@ function App() {
     const [sid, setSid] = useState<string>();
     const [users, setUsers] = useState<User[]>([]);
     const [showPoints, setShowPoints] = useState(false);
+    const [streak, setStreak] = useState(0);
     const [presentationMode, setPresentationMode] = useState(false);
     const sidRef = useRef<string>();
     const socketRef = useRef<RoomSocket | null>(null);
@@ -63,19 +65,25 @@ function App() {
         prevShowPointsRef.current = showPoints;
     }, [showPoints]);
 
-    // Consensus confetti detection
+    // Consensus celebration, escalating with the streak the server tracks.
+    // Fires once per reveal; the ref resets when results are hidden.
+    const celebratedRef = useRef(false);
     useEffect(() => {
-        if (!showPoints) return;
+        if (!showPoints) {
+            celebratedRef.current = false;
+            return;
+        }
+        if (celebratedRef.current || streak < 1) return;
+        celebratedRef.current = true;
 
-        const voters = users.filter((u) => u.points > 0);
-        if (voters.length < 2) return;
-
-        const allSame = voters.every((u) => u.points === voters[0].points);
-        if (!allSame) return;
-
-        const timer = setTimeout(() => {
-            fireConsensusConfetti();
-            toast("Consensus! The team agrees!", {
+        // Not cancelled on re-render: the ref already marks this reveal as celebrated
+        setTimeout(() => {
+            celebrateStreak(streak);
+            const message =
+                streak >= 2
+                    ? `Consensus! ${streak} in a row!`
+                    : "Consensus! The team agrees!";
+            toast(message, {
                 position: "top-center",
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -86,9 +94,7 @@ function App() {
                 transition: Bounce,
             });
         }, 800);
-
-        return () => clearTimeout(timer);
-    }, [showPoints, users]);
+    }, [showPoints, streak]);
 
     // Update sidRef whenever sid changes
     useEffect(() => {
@@ -112,10 +118,14 @@ function App() {
                 setSid(data.sid);
             });
 
-            rs.on("state", (data: { users: User[]; showResults: boolean }) => {
-                setUsers(data.users);
-                setShowPoints(data.showResults);
-            });
+            rs.on(
+                "state",
+                (data: { users: User[]; showResults: boolean; streak?: number }) => {
+                    setUsers(data.users);
+                    setShowPoints(data.showResults);
+                    setStreak(data.streak ?? 0);
+                }
+            );
 
             rs.on(
                 "reaction",
@@ -173,6 +183,7 @@ function App() {
                 setSid(undefined);
                 setUsers([]);
                 setShowPoints(false);
+                setStreak(0);
                 setPresentationMode(false);
                 setIsConnected(false);
                 setDisplayShowPoints(false);
@@ -198,6 +209,7 @@ function App() {
                 setSid(undefined);
                 setUsers([]);
                 setShowPoints(false);
+                setStreak(0);
                 setDisplayShowPoints(false);
                 setIsRevealing(false);
                 prevShowPointsRef.current = false;
@@ -244,6 +256,7 @@ function App() {
         setSid(undefined);
         setUsers([]);
         setShowPoints(false);
+        setStreak(0);
         setDisplayShowPoints(false);
         setIsRevealing(false);
         prevShowPointsRef.current = false;
@@ -305,6 +318,7 @@ function App() {
                         role={role}
                         onEdit={onEditProfile}
                     />
+                    <StreakBadge streak={streak} />
                     {displayShowPoints ? (
                         <div className={transitionClass}>
                             <UserContext.Provider value={username}>
